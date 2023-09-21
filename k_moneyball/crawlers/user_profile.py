@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
+import time
 from typing import List
 
 from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL
@@ -29,3 +30,35 @@ class UserProfile:
                 league_urls.append(league_url)
 
             return league_urls
+        
+    def get_club_urls(self):
+        league_urls = self.get_league_urls()
+        club_urls = []
+
+        for url in league_urls:
+            print(url + " Start =====================")
+            req = requests.get(url, headers=REQUEST_HEADERS)
+
+            if req.status_code == requests.codes.ok:
+                soup = BeautifulSoup(req.text, "lxml")
+
+                one_club_urls = []
+
+                club_table = soup.find("div", {"class" : "responsive-table"})
+                club_tags = club_table.find_all("td", {"class" : "zentriert no-border-rechts"})
+
+                for tag in club_tags:
+                    club = tag.a['href']
+                    club_url = TRANSFER_MARKT_ROOT_URL + club
+
+                    one_club_urls.append(club_url)
+
+                club_urls.append(one_club_urls)
+
+                print(url + " Complete =====================")
+                time.sleep(5)
+        
+        print(club_urls)
+
+user = UserProfile()
+user.get_club_urls()
