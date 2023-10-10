@@ -88,9 +88,14 @@ class UserProfile:
 
         if player_urls is None:
             return
+        
+        failed_url = self.write_player_csv(player_urls=player_urls)
 
-        players = []
+        while failed_url is not None:
+            failed_url = self.write_player_csv(player_urls=failed_url)
 
+    
+    def write_player_csv(self, player_urls):
         player_csv = open('player.csv', 'a', newline='')
         wr = csv.writer(player_csv)
 
@@ -145,6 +150,8 @@ class UserProfile:
                 time.sleep(1)
         
         player_csv.close()
+
+        return failed_url
 
 
 user = UserProfile()
