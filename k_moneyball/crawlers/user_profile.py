@@ -3,67 +3,38 @@ from bs4 import BeautifulSoup
 
 import csv
 import time
-from typing import List
 
-from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL
+from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL, DEFAULT_DATA_DICT, PLAYER_PROFILE_CSV_COLUMN
+from club_profile import ClubProfile
 
 class UserProfile:
-    def __init__(self) -> None:
-        self.national_num_kr = 87
-        self.root_url = f"{TRANSFER_MARKT_ROOT_URL}/wettbewerbe/national/wettbewerbe/87"
-        self.league_urls = [
-            "https://www.transfermarkt.com/k-league-1/startseite/wettbewerb/RSK1",
-            "https://www.transfermarkt.com/k-league-2/startseite/wettbewerb/RSK2"]
-        return
-
-    def get_league_urls(self) -> list[dict]:
-            return self.league_urls
-        
-    def get_club_urls(self):
-        league_urls = self.get_league_urls()
-        club_urls = []
-
-        club_csv = open('club.csv', 'a', newline='')
-        wr = csv.writer(club_csv)
-
-        for url in league_urls:
-            print(url + " Start =====================")
-            req = requests.get(url, headers=REQUEST_HEADERS)
-
-            if req.status_code == requests.codes.ok:
-                soup = BeautifulSoup(req.text, "lxml")
-
-                league_title = soup.find("h1", {"class" : "data-header__headline-wrapper data-header__headline-wrapper--oswald"})
-                club_table = soup.find("div", {"class" : "responsive-table"})
-                club_tags = club_table.find_all("td", {"class" : "zentriert no-border-rechts"})
-
-                for tag in club_tags:
-                    club = tag.a['href']
-                    club_url = TRANSFER_MARKT_ROOT_URL + club
-
-                    club_urls.append(club_url)
-
-                    print(league_title.string.strip())
-                    print(tag.a['title'])
-
-                    wr.writerow([tag.a['title'], league_title.string.strip()])
-
-                print(url + " Complete =====================")
-                time.sleep(3)
-
-        club_csv.close()
-        
-        print(club_urls)
-        return club_urls
-
     def get_player_profile_urls(self):
-        club_urls = self.get_club_urls()
+        club_profile = ClubProfile()
+        club_urls = club_profile.get_club_urls(is_writing_csv=True)
 
+        players, failed_url = self.get_player_urls(club_urls)
+
+        while len(failed_url) != 0:
+            print("========================= Start Failed URL =========================")
+            ply, failed_url = self.get_player_urls(failed_url)
+            players += ply
+            print(f"Add Failed url / total players : {len(players)}")
+
+        return players
+
+    def get_player_urls(self, club_urls):
         players = []
+        failed_url = []
 
         for url in club_urls:
             print(url + " Start =====================")
-            req = requests.get(url, headers=REQUEST_HEADERS)
+            try:
+                req = requests.get(url, headers=REQUEST_HEADERS)
+            except:
+                print("========================= Failed URL =========================")
+                failed_url.append(url)
+                print(failed_url)
+                continue
 
             if req.status_code == requests.codes.ok:
                 soup = BeautifulSoup(req.text, "lxml")
@@ -78,10 +49,9 @@ class UserProfile:
                 print(f"total players : {len(players)}")
 
                 print(url + " Complete =====================")
-                time.sleep(3)
+                time.sleep(2)
 
-
-        return players
+        return players, failed_url
 
     def get_player_info(self):
         player_urls = self.get_player_profile_urls()
@@ -91,13 +61,14 @@ class UserProfile:
         
         failed_url = self.write_player_csv(player_urls=player_urls)
 
-        while failed_url is not None:
+        while len(failed_url) != 0:
+            print("Failed URL Start =====================")
             failed_url = self.write_player_csv(player_urls=failed_url)
-
     
     def write_player_csv(self, player_urls):
-        player_csv = open('player.csv', 'a', newline='')
+        player_csv = open('player5.csv', 'a', newline='')
         wr = csv.writer(player_csv)
+        wr.writerow(PLAYER_PROFILE_CSV_COLUMN)
 
         failed_url = []
 
@@ -116,8 +87,7 @@ class UserProfile:
                 soup = BeautifulSoup(req.text, "lxml")
 
                 player_table = soup.find("div", {"class" : "large-6 large-pull-6 small-12 columns spielerdatenundfakten"})
-                players_info = player_table.find_all("span", {"class" : "info-table__content info-table__content--bold"})
-
+                player_shirt_info = soup.find("h1", {"class" : "data-header__headline-wrapper"})
                 player_value = soup.find("div", {"class" : "tm-player-market-value-development__current-value"})
                 player_club = soup.find("span", {"class" : "data-header__club"})
                 player_national = player_table.find("img", {"class" : "flaggenrahmen"}) 
@@ -131,18 +101,43 @@ class UserProfile:
                 except:
                     player.append('0')
 
+                player_shirt_info_cleared = player_shirt_info.get_text().replace(" ", "").split("\n")
+                player.append(player_shirt_info_cleared[-1])
+                player.append(player_shirt_info_cleared[-2])
                 player.append(player_club.find("a")['title'].strip())
                 player.append(player_national['title'])
 
-                for i in players_info:
-                    if i.string is not None and i.string != "right" and i.string != "left":
-                        player.append(i.string.strip())
-                    elif i.a:
-                        if i.a.string is not None:
-                            player.append(i.a.string.strip())
+                player_info_title = player_table.find_all("span", {"class" : "info-table__content info-table__content--regular"})
+                player_info_value = player_table.find_all("span", {"class" : "info-table__content info-table__content--bold"})
 
-                while len(player) > 10:
-                    player.pop()
+                unnecessary_keys = []
+
+                for i in player_info_title:
+                    title = i.string.strip().replace(":", "")
+                    if title.find("Current") != -1 or title.find("Social") != -1 or title.find("agent") != -1:
+                        unnecessary_keys.append(player_info_title.index(i))
+                    player_info_title[player_info_title.index(i)] = title
+
+                if len(unnecessary_keys) != 0:
+                    unnecessary_keys.reverse()
+
+                    for key in unnecessary_keys:                    
+                        player_info_title.pop(key)
+
+                player_info = {player_info_title[i] : player_info_value[i] for i in range(len(player_info_title))}
+
+                for k, v in DEFAULT_DATA_DICT.items():
+                    if player_info.get(k):
+                        v = player_info.get(k)
+                        if v.string is not None:
+                            player.append(v.string.strip())
+                        elif v.text:
+                            player.append(v.text.strip())
+                        elif v.a:
+                            if v.a.string is not None:
+                                player.append(v.a.string.strip())
+                    else:
+                        player.append(None)
 
                 print(player)
                 wr.writerow(player)
@@ -152,7 +147,6 @@ class UserProfile:
         player_csv.close()
 
         return failed_url
-
 
 user = UserProfile()
 user.get_player_info()
