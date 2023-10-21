@@ -1,0 +1,103 @@
+version: "3.6"
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.2
+    hostname: zookeeper
+    container_name: zookeeper
+    networks:
+      - localnet
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.2.2
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    networks:
+      - localnet
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: LISTENER_1://broker:29092,LISTENER_2://broker:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_1://broker:29092,LISTENER_2://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_1:PLAINTEXT,LISTENER_2:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CONFLUENT_SUPPORT_CUSTOMER_ID: "anonymous"
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+
+  connect:
+    build: ./connect
+    ports:
+      - "35000:35000"
+    hostname: connect
+    container_name: connect
+    depends_on:
+      - zookeeper
+      - broker
+    networks:
+      - localnet      
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:7.2.2
+    depends_on:
+      - zookeeper
+      - broker
+      - schema-registry
+    hostname: rest-proxy
+    container_name: rest-proxy
+    networks:
+      - localnet
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: "broker:29092"
+      KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema_registry:8081"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.2.2
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker
+    networks:
+      - localnet
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker:29092"
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  mongo:
+    image: "mongo:4.2"
+    container_name: mongo
+    ports:
+      - "35001:27017"
+    command: ["mongod", "--replSet", "rs0", "--auth"]
+    environment:
+      - MONGO_ADMIN=${MONGO_ADMIN}
+      - EVENT_SINK_USER=${EVENT_SINK_USER}
+    volumes:
+      - ./mongo/init.sh:/usr/local/bin/init.sh
+    restart: always
+
+  k-moneyball:
+    container_name: k-moneyball
+    build: ./k_moneyball
+    environment:
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    volumes:
+      - ./k_moneyball:/k_moneyball
+    depends_on:
+      - mongo
+
+networks:
+  localnet:
+    attachable: true
