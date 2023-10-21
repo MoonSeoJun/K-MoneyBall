@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import time
 import json
 
-from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL
+from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL, CLUBS_INFO_JSON_PATH
 
 class ClubProfile:
     def __init__(self):
@@ -19,9 +19,7 @@ class ClubProfile:
         
     def extract_club_info(self):
         league_urls = self.get_league_urls()
-        club_info = {
-            "clubs" : []
-        }
+        club_info = []
 
         for url in league_urls:
             print(url + " Start =====================")
@@ -38,17 +36,20 @@ class ClubProfile:
                     club = tag.a['href']
                     club_url = TRANSFER_MARKT_ROOT_URL + club
 
-                    club_info['clubs'].append(
+                    club_info.append(
                     {
                         "league" : league_title.string.strip(),
                         "club_name" : tag.a['title'],
                         "club_url" : club_url
                     })
 
-                    print(tag.a['title'])
-
                 print(url + " Complete =====================")
                 time.sleep(2)
 
-        with open('./clubs_info.json', 'w') as outfile:
-            json.dump(club_info, outfile, indent='\t')
+        with open(CLUBS_INFO_JSON_PATH, 'w') as outfile:
+            json.dump({
+                "clubs" : club_info
+            }, outfile, indent='\t')
+
+club = ClubProfile()
+club.extract_club_info()
