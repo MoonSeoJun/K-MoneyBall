@@ -72,14 +72,25 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
+  mongo:
+    container_name: mongo
+    image: mongo:4.2
+    environment: 
+        - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN}
+        - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN}
+    ports:
+        - 27017:27017
+
   k-moneyball:
     container_name: k-moneyball
     build: ./k_moneyball
-    environment:
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     volumes:
       - ./k_moneyball:/k_moneyball
+    depends_on:
+      - mongo
 
 networks:
+  default:
+    name : mynet
   localnet:
     attachable: true

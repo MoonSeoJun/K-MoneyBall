@@ -14,17 +14,16 @@ def read_collection_all_data(collection):
             print(e)
             break
 
-url = "mongodb+srv://msj00130:password@example1.qdwr5rh.mongodb.net/?retryWrites=true&w=majority"
+url = "mongodb://admin:admin@mongo:27017"
 client = MongoClient(url)
 
 try:
-    print(client.list_database_names())
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
 
-db = client.get_database('test')
+db = client.get_database('football_player_info')
 
 with open(CLUBS_INFO_JSON_PATH, 'r') as club_file:
     club_data = json.load(club_file)
