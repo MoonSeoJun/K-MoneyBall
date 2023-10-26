@@ -4,8 +4,6 @@ services:
     image: confluentinc/cp-zookeeper:7.2.2
     hostname: zookeeper
     container_name: zookeeper
-    networks:
-      - localnet
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -16,19 +14,17 @@ services:
     container_name: broker
     depends_on:
       - zookeeper
-    networks:
-      - localnet
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_LISTENERS: LISTENER_1://broker:29092,LISTENER_2://broker:9092
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_1://broker:29092,LISTENER_2://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_1:PLAINTEXT,LISTENER_2:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_1
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       CONFLUENT_SUPPORT_CUSTOMER_ID: "anonymous"
-      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      DEFAULT_TOPIC: ${DEFAULT_TOPIC}
 
   connect:
     build: ./connect
@@ -39,8 +35,27 @@ services:
     depends_on:
       - zookeeper
       - broker
-    networks:
-      - localnet      
+    environment:
+      KAFKA_JMX_PORT: 35000
+      KAFKA_JMX_HOSTNAME: localhost
+      CONNECT_BOOTSTRAP_SERVERS: "broker:29092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: connect-cluster-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
+      CONNECT_METADATA_MAX_AGE_MS: 180000
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
 
   rest-proxy:
     image: confluentinc/cp-kafka-rest:7.2.2
@@ -50,8 +65,6 @@ services:
       - schema-registry
     hostname: rest-proxy
     container_name: rest-proxy
-    networks:
-      - localnet
     environment:
       KAFKA_REST_HOST_NAME: rest-proxy
       KAFKA_REST_BOOTSTRAP_SERVERS: "broker:29092"
@@ -64,8 +77,6 @@ services:
     container_name: schema-registry
     depends_on:
       - broker
-    networks:
-      - localnet
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker:29092"
@@ -75,11 +86,17 @@ services:
   mongo:
     container_name: mongo
     image: mongo:4.2
-    environment: 
-        - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN}
-        - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN}
+    command: ["mongod", "--replSet", "rs0", "--auth"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN}
+      - MONGO_ADMIN=${MONGO_ADMIN}
+      - EVENT_SINK=${EVENT_SINK}
+      - K_MONEYBALL=${K_MONEYBALL}
     ports:
         - 27017:27017
+    volumes:
+        - ./mongo/init.sh:/usr/local/bin/init.sh
 
   k-moneyball:
     container_name: k-moneyball
@@ -91,6 +108,4 @@ services:
 
 networks:
   default:
-    name : mynet
-  localnet:
-    attachable: true
+    name: localnet
