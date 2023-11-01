@@ -13,6 +13,7 @@ lxml = "^4.9.3"
 pandas = "^2.1.1"
 psycopg2-binary = "^2.9.9"
 pymongo = "^4.5.0"
+kafka-python = "^2.0.2"
 
 
 [build-system]
