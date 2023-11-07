@@ -45,7 +45,6 @@ with DAG(
         dag=dag
     )
 
-    # events = export_club_profile(config, dag)
     scrapping_club_profile = [
         export_club_profile(league, config, dag)
         for league in config.KLEAGUE_URLS
