@@ -1,2 +1,7 @@
 .venv
+k_moneyball/__pycache__
 k_moneyball/*/__pycache__
+k_moneyball/*/*/__pycache__
+
+airflow/*/__pycache__
+airflow/*/*/__pycache__

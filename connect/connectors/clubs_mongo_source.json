@@ -1,8 +1,9 @@
 {
-    "name": "mongo-event-source",
+    "name": "clubs-mongo-source",
     "config": {
         "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
         "connection.uri":"mongodb://admin:admin@mongo:27017",
-        "database": "event_sink"
+        "database": "k_moneyball",
+        "collection" : "clubs"
     }
 }

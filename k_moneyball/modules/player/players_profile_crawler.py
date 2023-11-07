@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 import time
 import json
 import os
+from datetime import datetime
 
-from configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL, CLUBS_INFO_JSON_PATH, PLAYERS_INFO_JSON_PATH
+from k_moneyball.modules.util.configs import REQUEST_HEADERS, TRANSFER_MARKT_ROOT_URL, CLUBS_INFO_JSON_PATH, PLAYERS_INFO_JSON_PATH
 
 class UserProfile:
     def get_player_profile_urls(self):
