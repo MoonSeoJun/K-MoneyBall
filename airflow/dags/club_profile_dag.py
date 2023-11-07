@@ -18,9 +18,11 @@ def dummy_callable(action):
     return f"{datetime.now()}: {action} scrapping RSS feeds!"
 
 
-def export_club_profile(config, dag):
+def export_club_profile(league, config, dag):
     return ClubProfileOperator(
-        task_id=f"exporting_club_profile_by_transferMarkt",
+        task_id=f"{league['title']}_club_profile_exporting",
+        url=league['url'],
+        http_header=config.REQUEST_HEADERS,
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         topic=config.CLUB_TOPIC,
         dag=dag
@@ -43,7 +45,11 @@ with DAG(
         dag=dag
     )
 
-    events = export_club_profile(config, dag)
+    # events = export_club_profile(config, dag)
+    scrapping_club_profile = [
+        export_club_profile(league, config, dag)
+        for league in config.KLEAGUE_URLS
+    ]
 
     finish = PythonOperator(
         task_id="finishing_pipeline",
@@ -52,4 +58,4 @@ with DAG(
         dag=dag
     )
 
-    start >> events >> finish
+    start >> scrapping_club_profile >> finish

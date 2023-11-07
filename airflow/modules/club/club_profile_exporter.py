@@ -23,6 +23,6 @@ class ClubProfileExporter:
                 topic=topic,
                 value=club
             )
-            time.sleep(0.5)
+            time.sleep(0.05)
 
         self.producer.flush()

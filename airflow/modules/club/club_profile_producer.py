@@ -4,16 +4,12 @@ from bs4 import BeautifulSoup
 import time
 
 import util.configs as configs
-from club.club_profile_vaildator import UrlVaildator
 
 class ClubProfileProducer:
     def __init__(self) -> None:
-        self.url_vaildator = UrlVaildator()
-    
-    def __parsing_club_profile(self, url):
-        print(url + " Start =====================")
-        url_content = self.url_vaildator.verify_url(target_url=url)
+        pass
 
+    def __parsing_club_profile(self, url_content):
         club_info = []
 
         soup = BeautifulSoup(url_content, "lxml")
@@ -33,15 +29,9 @@ class ClubProfileProducer:
                 "club_url" : club_url
             })
 
-        print(url + " Complete =====================")
-
         return club_info
     
-    def produce_club_info(self):
-        club_info = []
-
-        for url in configs.KLEAGUE_URLS:
-            club_info.extend(self.__parsing_club_profile(url))
-            time.sleep(2)
+    def produce_club_info(self, url_content):
+        club_info = self.__parsing_club_profile(url_content)
 
         return club_info

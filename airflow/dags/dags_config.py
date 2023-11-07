@@ -1,57 +1,21 @@
 
-
 class Config:
-
-    PROXY_WEBPAGE = "https://free-proxy-list.net/"
-
-    TESTING_URL = "https://google.com"
-
-    REDIS_CONFIG = {
-        "host": "redis",
-        "port": "6379",
-        "db": 0
-    }
-
-    REDIS_KEY = "proxies"
-
-    MAX_WORKERS = 50
-
-    NUMBER_OF_PROXIES = 50
-
-    RSS_FEEDS = {
-        "en": [
-            "https://www.goal.com/en/news",
-            "https://www.eyefootball.com/football_news.xml",
-            "https://www.101greatgoals.com/feed/",
-            "https://sportslens.com/feed/",
-            "https://deadspin.com/rss"
-        ],
-        "pl": [
-            "https://weszlo.com/feed/",
-            "https://sportowefakty.wp.pl/rss.xml",
-            "https://futbolnews.pl/feed",
-            "https://igol.pl/feed/"
-        ],
-        "es": [
-            "https://as.com/rss/tags/ultimas_noticias.xml",
-            "https://e00-marca.uecdn.es/rss/futbol/mas-futbol.xml",
-            "https://www.futbolred.com/rss-news/liga-de-espana.xml",
-            "https://www.futbolya.com/rss/noticias.xml"
-        ],
-        "de": [
-            "https://www.spox.com/pub/rss/sport-media.xml",
-            "https://www.dfb.de/news/rss/feed/"
-        ]
-    }
-
     BOOTSTRAP_SERVERS = ["broker:29092"]
 
-    TOPIC = "rss_news"
     CLUB_TOPIC = "k_moneyball.sink.clubs"
 
-    VALIDATOR_CONFIG = {
-        "description_length": 10,
-        "languages": [
-            "en", "pl", "es", "de"
-        ]
-    }
+    TRANSFER_MARKT_ROOT_URL = "https://www.transfermarkt.com"
+    REQUEST_HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
+
+    CLUBS_INFO_JSON_PATH = './clubs_info.json'
+    PLAYERS_INFO_JSON_PATH = './players_info.json'
+
+    KLEAGUE_URLS = [
+        {
+            "title" : "Kleague1",
+            "url" : "https://www.transfermarkt.com/k-league-1/startseite/wettbewerb/RSK1"
+        },
+        {
+            "title" : "Kleague2",
+            "url" : "https://www.transfermarkt.com/k-league-2/startseite/wettbewerb/RSK2"
+        }]
