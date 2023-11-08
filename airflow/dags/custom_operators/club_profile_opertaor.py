@@ -2,7 +2,9 @@ from log import log
 from retry import RetryOnException as retry
 from club import (
     ClubProfileExporter,
-    ClubProfileProducer,
+    ClubProfileProducer
+)
+from util import (
     UrlVaildator
 )
 
