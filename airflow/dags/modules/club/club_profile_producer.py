@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 import time
 
-import util.configs as configs
+import modules.util.configs as configs
 
 class ClubProfileProducer:
     def __init__(self) -> None:

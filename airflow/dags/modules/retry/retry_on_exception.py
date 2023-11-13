@@ -1,5 +1,5 @@
 import functools
-from log import log
+from modules.log import log
 
 
 @log

@@ -1,1 +1,2 @@
 from custom_operators.club_profile_opertaor import ClubProfileOperator
+from custom_operators.player_profile_operator import PlayerProfileOperator

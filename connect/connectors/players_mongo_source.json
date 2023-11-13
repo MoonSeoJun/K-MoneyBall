@@ -1,0 +1,9 @@
+{
+    "name": "players-mongo-source",
+    "config": {
+        "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+        "connection.uri":"mongodb://admin:admin@mongo:27017",
+        "database": "k_moneyball",
+        "collection" : "players"
+    }
+}

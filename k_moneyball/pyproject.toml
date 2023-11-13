@@ -14,7 +14,6 @@ pandas = "^2.1.1"
 psycopg2-binary = "^2.9.9"
 pymongo = "^4.5.0"
 kafka-python = "^2.0.2"
-apache-airflow = {extras = ["cncf-kubernetes"], version = "^2.7.2"}
 connexion = "^2.14.2"
 
 

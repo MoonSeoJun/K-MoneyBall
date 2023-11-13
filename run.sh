@@ -6,7 +6,7 @@ if [ $argument = "up" ]; then
     echo "Creating infrastructure..."
     docker-compose build
     docker-compose up -d mongo
-    sleep 3
+    sleep 5
     docker exec -it mongo /usr/local/bin/init.sh
     sleep 3
     docker-compose up -d

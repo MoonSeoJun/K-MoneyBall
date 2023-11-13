@@ -2,21 +2,18 @@ from urllib.parse import urlparse
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+from airflow.models.baseoperator import chain
+from kafka import KafkaConsumer
 
 from dags_config import Config as config
 from custom_operators import (
     ClubProfileOperator,
+    PlayerProfileOperator
 )
 
 
-def extract_feed_name(url):
-    parsed_url = urlparse(url)
-    return parsed_url.netloc.replace("www.", "")
-
-
 def dummy_callable(action):
-    return f"{datetime.now()}: {action} scrapping RSS feeds!"
-
+    return f"{datetime.now()}: {action} scrapping TransferMarkt!"
 
 def export_club_profile(league, config, dag):
     return ClubProfileOperator(
@@ -28,10 +25,19 @@ def export_club_profile(league, config, dag):
         dag=dag
     )
 
+def export_player_profile(league, config, dag):
+    return PlayerProfileOperator(
+        task_id=f"{league['title']}_player_profile_exporting",
+        url=league['url'],
+        http_header=config.REQUEST_HEADERS,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
+        topic=config.CLUB_TOPIC,
+        dag=dag
+    )
 
 with DAG(
-    dag_id="club_profile_dag",
-    description=f"Scrape latest club profiles",
+    dag_id="scrap_transfermarkt_dag",
+    description=f"Scrape latest club and player profiles",
     schedule_interval="@hourly",
     start_date=datetime(2020, 1, 1),
     catchup=False,
@@ -56,5 +62,14 @@ with DAG(
         op_kwargs={"action": "finishing"},
         dag=dag
     )
+
+    finish_club_scrapping = PythonOperator(
+        task_id="finishing_club_scrapping",
+        python_callable=dummy_callable,
+        op_kwargs={"action": "finishing"},
+        dag=dag
+    )
+
+    # chain(start, [scrapping_player_profile], scrapping_club_profile, finish)
 
     start >> scrapping_club_profile >> finish

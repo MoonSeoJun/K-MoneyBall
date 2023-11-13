@@ -1,10 +1,10 @@
-from log import log
-from retry import RetryOnException as retry
-from club import (
+from modules.log import log
+from modules.retry import RetryOnException as retry
+from modules.club import (
     ClubProfileExporter,
     ClubProfileProducer
 )
-from util import (
+from modules.util import (
     UrlVaildator
 )
 
