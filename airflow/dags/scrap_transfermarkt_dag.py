@@ -3,7 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.models.baseoperator import chain
-from kafka import KafkaConsumer
+
 
 from dags_config import Config as config
 from custom_operators import (
@@ -51,10 +51,16 @@ with DAG(
         dag=dag
     )
 
-    scrapping_club_profile = [
-        export_club_profile(league, config, dag)
-        for league in config.KLEAGUE_URLS
-    ]
+    # scrapping_club_profile = [
+    #     export_club_profile(league, config, dag)
+    #     for league in config.KLEAGUE_URLS
+    # ]
+
+    scrap_club_profile_task = ClubProfileOperator.partial(
+        task_id="club_profile_exporting"
+    ).expand(
+        url=config.KLEAGUE_URLS,
+    )
 
     finish = PythonOperator(
         task_id="finishing_pipeline",
@@ -72,4 +78,4 @@ with DAG(
 
     # chain(start, [scrapping_player_profile], scrapping_club_profile, finish)
 
-    start >> scrapping_club_profile >> finish
+    start >> scrap_club_profile_task >> finish_club_scrapping >> finish

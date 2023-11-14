@@ -13,11 +13,6 @@ class Config:
     PLAYERS_INFO_JSON_PATH = './players_info.json'
 
     KLEAGUE_URLS = [
-        {
-            "title" : "Kleague1",
-            "url" : "https://www.transfermarkt.com/k-league-1/startseite/wettbewerb/RSK1"
-        },
-        {
-            "title" : "Kleague2",
-            "url" : "https://www.transfermarkt.com/k-league-2/startseite/wettbewerb/RSK2"
-        }]
+        "https://www.transfermarkt.com/k-league-1/startseite/wettbewerb/RSK1",
+        "https://www.transfermarkt.com/k-league-2/startseite/wettbewerb/RSK2"
+    ]
