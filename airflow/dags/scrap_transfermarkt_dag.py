@@ -1,9 +1,7 @@
-from urllib.parse import urlparse
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.models.baseoperator import chain
-
+from airflow.decorators import task
 
 from dags_config import Config as config
 from custom_operators import (
@@ -15,26 +13,6 @@ from custom_operators import (
 def dummy_callable(action):
     return f"{datetime.now()}: {action} scrapping TransferMarkt!"
 
-def export_club_profile(league, config, dag):
-    return ClubProfileOperator(
-        task_id=f"{league['title']}_club_profile_exporting",
-        url=league['url'],
-        http_header=config.REQUEST_HEADERS,
-        bootstrap_servers=config.BOOTSTRAP_SERVERS,
-        topic=config.CLUB_TOPIC,
-        dag=dag
-    )
-
-def export_player_profile(league, config, dag):
-    return PlayerProfileOperator(
-        task_id=f"{league['title']}_player_profile_exporting",
-        url=league['url'],
-        http_header=config.REQUEST_HEADERS,
-        bootstrap_servers=config.BOOTSTRAP_SERVERS,
-        topic=config.CLUB_TOPIC,
-        dag=dag
-    )
-
 with DAG(
     dag_id="scrap_transfermarkt_dag",
     description=f"Scrape latest club and player profiles",
@@ -43,6 +21,12 @@ with DAG(
     catchup=False,
     is_paused_upon_creation=False
 ) as dag:
+    
+    @task
+    def extract_club_url(url_list):
+        urls = sum(url_list, [])
+        club_urls = [club['club_url'] for club in urls]
+        return club_urls
 
     start = PythonOperator(
         task_id="starting_pipeline",
@@ -51,15 +35,24 @@ with DAG(
         dag=dag
     )
 
-    # scrapping_club_profile = [
-    #     export_club_profile(league, config, dag)
-    #     for league in config.KLEAGUE_URLS
-    # ]
-
     scrap_club_profile_task = ClubProfileOperator.partial(
-        task_id="club_profile_exporting"
+        task_id="club_profile_exporting",
+        http_header=config.REQUEST_HEADERS,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
+        topic=config.CLUB_TOPIC,
     ).expand(
         url=config.KLEAGUE_URLS,
+    )
+
+    club_profile_urls = extract_club_url(url_list=scrap_club_profile_task.output)
+
+    scrap_player_profile_task = PlayerProfileOperator.partial(
+        task_id="player_profile_exporting",
+        http_header=config.REQUEST_HEADERS,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
+        topic=config.PLAYER_TOPIC,
+    ).expand(
+        url=club_profile_urls
     )
 
     finish = PythonOperator(
@@ -69,13 +62,5 @@ with DAG(
         dag=dag
     )
 
-    finish_club_scrapping = PythonOperator(
-        task_id="finishing_club_scrapping",
-        python_callable=dummy_callable,
-        op_kwargs={"action": "finishing"},
-        dag=dag
-    )
-
-    # chain(start, [scrapping_player_profile], scrapping_club_profile, finish)
-
-    start >> scrap_club_profile_task >> finish_club_scrapping >> finish
+    start >> scrap_club_profile_task
+    scrap_player_profile_task >> finish

@@ -17,11 +17,12 @@ class PlayerProfileExporter:
     def __exit__(self, type, value, traceback):
         self.producer.close()
     
-    def export_player_profile(self, topic, player_profile):
-        self.producer.send(
-            topic=topic,
-            value=player_profile
-        )
+    def export_player_profile(self, topic, player_profiles):
+        for player_profile in player_profiles:
+            self.producer.send(
+                topic=topic,
+                value=player_profile
+            )
 
         self.producer.flush()
 

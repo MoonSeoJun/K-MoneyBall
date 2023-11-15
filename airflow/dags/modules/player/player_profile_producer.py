@@ -1,10 +1,4 @@
-import requests
 from bs4 import BeautifulSoup
-
-import time
-import json
-import os
-from datetime import datetime
 
 TRANSFER_MARKT_ROOT_URL = "https://www.transfermarkt.com"
 
