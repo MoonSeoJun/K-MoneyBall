@@ -10,6 +10,15 @@ if [ $argument = "up" ]; then
     docker exec -it mongo /usr/local/bin/init.sh
     sleep 3
     docker-compose up -d
+elif [ $argument = "rewrite" ]; then
+    echo "Rewrite DAGs..."
+    docker-compose stop airflow-scheduler
+    sleep 3
+    docker-compose stop airflow-worker
+    sleep 3
+    docker-compose build
+    sleep 3
+    docker-compose up -d
 elif [ $argument = "stop" ]; then
     echo "Stopping infrastructure..."
     docker-compose stop
