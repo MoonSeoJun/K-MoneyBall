@@ -383,7 +383,7 @@ services:
   mongo:
     container_name: mongo
     image: mongo:4.2
-    command: ["mongod", "--replSet", "rs0", "--auth"]
+    command: ["mongod", "--replSet", "rs0"]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN}
@@ -394,6 +394,7 @@ services:
         - 27017:27017
     volumes:
         - ./mongo/init.sh:/usr/local/bin/init.sh
+        - mongo-db-volume:/data/db
 
 networks:
   default:
@@ -401,3 +402,4 @@ networks:
 
 volumes:
   postgres-db-volume:
+  mongo-db-volume:
