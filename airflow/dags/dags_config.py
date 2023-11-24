@@ -2,6 +2,11 @@
 class Config:
     BOOTSTRAP_SERVERS = ["broker:29092"]
 
+    MONGO_HOST = "mongodb://admin:admin@mongo:27017"
+    MONGO_DB = "k_moneyball"
+    MONGO_COLLECTION_CLUBS = "clubs"
+    MONGO_COLLECTION_PLAYERS = "players"
+
     CLUB_TOPIC = "k_moneyball.sink.clubs"
     CLUB_TOPIC_SOURCE = "k_moneyball.clubs"
     PLAYER_TOPIC = "k_moneyball.sink.players"

@@ -1,2 +1,2 @@
-from custom_operators.club_profile_opertaor import ClubProfileOperator
-from custom_operators.player_profile_operator import PlayerProfileOperator
+from custom_operators.scrap_club_profile_opertaor import ScrapClubProfileOperator
+from custom_operators.scrap_player_profile_operator import ScrapPlayerProfileOperator

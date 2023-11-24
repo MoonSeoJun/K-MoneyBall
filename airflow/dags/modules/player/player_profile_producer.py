@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
 
+import time
+
 TRANSFER_MARKT_ROOT_URL = "https://www.transfermarkt.com"
 
 class PlayerProfileProducer:
@@ -59,5 +61,7 @@ class PlayerProfileProducer:
         player_info['national'] = player_national['title']
 
         player_info['url'] = url
+
+        time.sleep(0.5)
         
         return player_info

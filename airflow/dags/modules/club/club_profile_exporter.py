@@ -1,7 +1,6 @@
 from kafka import KafkaProducer
 
 import json
-import time
 
 
 class ClubProfileExporter:
@@ -17,12 +16,11 @@ class ClubProfileExporter:
     def __exit__(self, type, value, traceback):
         self.producer.close()
     
-    def export_club_info(self, topic, club_info):
-        for club in club_info:
+    def export_club_profile(self, topic, club_profiles):
+        for club in club_profiles:
             self.producer.send(
                 topic=topic,
                 value=club
             )
-            time.sleep(0.05)
 
         self.producer.flush()

@@ -1,6 +1,8 @@
 
 from bs4 import BeautifulSoup
 
+import time
+
 import modules.util.configs as configs
 
 class ClubProfileProducer:
@@ -26,6 +28,8 @@ class ClubProfileProducer:
                 "club_name" : tag.a['title'],
                 "club_url" : club_url
             })
+
+        time.sleep(0.5)
 
         return club_info
     
