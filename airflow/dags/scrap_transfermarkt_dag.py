@@ -98,7 +98,7 @@ with DAG(
         myclient.close()
 
         if is_mongo_empty == True:
-            return "init_mongo_start"
+            return "scrap_club_profile_task"
         else:
             return "scrap_club_profile_task_for_verify"
         
