@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 RUN poetry install
 RUN poetry env use python
 
-CMD poetry run python data/init_db.py
+CMD poetry run python listener/kafka_listener.py
