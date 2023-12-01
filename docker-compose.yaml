@@ -110,6 +110,7 @@ services:
       POSTGRES_DB: k_moneyball
     volumes:
       - postgres_kmoneyball-db-volume:/var/lib/postgresql/data
+      - ./postgres_kmoneyball/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
 
