@@ -62,6 +62,8 @@ class PlayerProfileProducer:
 
         player_info['url'] = url
 
-        time.sleep(0.5)
+        player_info["_id"] = url.split('/')[-1]
+
+        time.sleep(1)
         
         return player_info

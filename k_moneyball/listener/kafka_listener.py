@@ -54,28 +54,32 @@ def consume_messages(consumer:KafkaConsumer, producer:KafkaProducer):
             print(f"msg_topic : {msg_topic}")
             json_decoded_msg = json.loads(decoded_msg)
             print(f"Received message: {json_decoded_msg}")
-            print("============================================")
 
             msg_payload = json.loads(json_decoded_msg['payload'])
+            event_operation_type = msg_payload['operationType']
+            event_document = msg_payload["ns"]["coll"]
+            event_document_id = msg_payload["documentKey"]["_id"]
+            print("============================================")
 
-            if msg_payload['operationType'] == "update":
-                event_document = msg_payload["ns"]["coll"]
-                event_document_oid = msg_payload["documentKey"]["_id"]["$oid"]
+            event_sink = {
+                'event_operation_type' : event_operation_type,
+                'targetDocument' : event_document,
+                'eventTarget' : event_document_id
+            }
+
+            if event_operation_type == "update":
                 event_description = msg_payload["updateDescription"]
-                event_timestamp = datetime.datetime.now()
+                updated_field = event_description['updatedFields']
+                if len(updated_field) == 1: continue
+                else: event_sink['updateDescription'] = event_description
+            else:
+                event_sink['fullDocument'] = msg_payload['fullDocument']
 
-                event_sink = {
-                    'targetDocument' : event_document,
-                    'eventTarget' : event_document_oid,
-                    'updateDescription' : event_description,
-                    'eventTimestamp' : str(event_timestamp)
-                }
-
-                producer.send(
-                    topic='k_moneyball.sink.event',
-                    value=event_sink
-                )
-                producer.flush()
+            producer.send(
+                topic='k_moneyball.sink.event',
+                value=event_sink
+            )
+            producer.flush()
 
     except KeyboardInterrupt:
         pass

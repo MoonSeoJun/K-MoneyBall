@@ -24,12 +24,13 @@ class ClubProfileProducer:
 
             club_info.append(
             {
+                "_id" : club.split('/')[-3],
                 "league" : league_title.string.strip(),
                 "club_name" : tag.a['title'],
                 "club_url" : club_url
             })
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         return club_info
     

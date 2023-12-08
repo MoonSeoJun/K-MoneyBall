@@ -1,7 +1,7 @@
 import logging
 from modules.log import log
 from modules.retry import RetryOnException as retry
-from modules.player import PlayerProfileProducer
+from modules.player import PlayerProfileProducer, PlayerProfileExporter
 from modules.util import UrlVaildator
 
 from airflow.models.baseoperator import BaseOperator
@@ -16,10 +16,14 @@ class ScrapPlayerProfileOperator(BaseOperator):
     def __init__(
             self,
             http_header,
+            bootstrap_servers,
+            topic,
             url,
             *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.http_header = http_header
+        self.topic = topic
+        self.bootstrap_servers = bootstrap_servers
         self.club_url = url
 
     @retry(5)
@@ -41,6 +45,11 @@ class ScrapPlayerProfileOperator(BaseOperator):
 
             player_profiles.append(player_profile)
 
-            time.sleep(1.5)
-
-        return player_profiles
+        with PlayerProfileExporter(self.bootstrap_servers) as exporter:
+            try:
+                exporter.export_player_profile(
+                    topic=self.topic,
+                    player_profiles=player_profiles
+                )
+            except Exception as err:
+                raise err
