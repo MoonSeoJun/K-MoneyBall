@@ -2,6 +2,7 @@
     "name": "stats-mongo-source",
     "config": {
         "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+        "errors.tolerance" : "all",
         "connection.uri":"mongodb://admin:admin@mongo:27017",
         "database": "k_moneyball",
         "collection" : "stats"

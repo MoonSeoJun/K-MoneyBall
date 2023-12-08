@@ -372,7 +372,7 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
       CONNECT_METADATA_MAX_AGE_MS: 180000
-      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "false"
       CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
 
@@ -404,8 +404,8 @@ services:
 
   mongo:
     container_name: mongo
-    image: mongo:4.2
-    command: ["mongod", "--replSet", "rs0"]
+    image: mongo:latest
+    command: ["mongod", "--replSet", "rs0", "--keyFile", "/etc/mongodb.key"]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN}
@@ -416,6 +416,7 @@ services:
         - 27017:27017
     volumes:
         - ./mongo/init.sh:/usr/local/bin/init.sh
+        - ./mongo/mongokey.key:/etc/mongodb.key
         - mongo-db-volume:/data/db
 
   k_moneyball:

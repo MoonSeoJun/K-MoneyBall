@@ -10,7 +10,7 @@ echo -e $(date) "Kafka Connect is ready! Listener HTTP state: " $(curl -s -o /de
 
 
 for connector in *.json; do
-  curl -s -X "POST" "http://localhost:8083/connectors" -H "Content-Type: application/json" -d @$connector
+  curl -X POST -H "Content-Type: application/json" -d @$connector http://localhost:8083/connectors -w "\n"
   sleep 5
 done
 
