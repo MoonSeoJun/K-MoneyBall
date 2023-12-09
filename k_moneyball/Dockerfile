@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 RUN poetry install
 RUN poetry env use python
 
-CMD poetry run python listener/kafka_listener.py
+CMD poetry run uvicorn main:app --host 0.0.0.0 --port 80
