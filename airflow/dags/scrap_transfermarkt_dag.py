@@ -11,12 +11,6 @@ from custom_operators import (
     ScrapPlayerProfileOperator,
 )
 
-from modules.club import ClubProfileExporter
-from modules.player import PlayerProfileExporter
-
-import logging
-import re
-
 
 def dummy_callable(action):
     return f"{datetime.now()}: {action}"
@@ -33,71 +27,6 @@ with DAG(
     catchup=False,
     is_paused_upon_creation=False
 ) as dag:
-    
-    # @task
-    # def export_data(bootstrap_servers, topic, data_list):
-    #     data = combine_url_list(data_list)
-
-    #     if topic == config.CLUB_TOPIC:
-    #         with ClubProfileExporter(bootstrap_servers) as exporter:
-    #             try:
-    #                 exporter.export_club_profile(
-    #                     topic,
-    #                     data
-    #                 )
-    #                 return data
-    #             except Exception as err:
-    #                 raise err
-    #     else:
-    #         with PlayerProfileExporter(bootstrap_servers) as exporter:
-    #             try:
-    #                 exporter.export_player_profile(
-    #                     topic,
-    #                     data
-    #                 )
-    #                 return data
-    #             except Exception as err:
-    #                 raise err
-                
-    # @task
-    # def verify_data_by_mongo(mongo_host, mongo_db, mongo_collection, data_list):
-    #     datas = combine_url_list(data_list)
-
-    #     myclient = pymongo.MongoClient(mongo_host)
-    #     mydb = myclient.get_database(mongo_db)
-    #     colc = mydb.get_collection(mongo_collection)
-
-    #     if mongo_collection == config.MONGO_COLLECTION_CLUBS:
-    #         for data in datas:
-    #             if colc.find_one({"club_name" : data["club_name"]}):
-    #                 result = colc.find_one_and_update(
-    #                     {"club_name" : data["club_name"]}, 
-    #                     update={"$set" : data},
-    #                     return_document=ReturnDocument.AFTER)
-    #             else:
-    #                 result = colc.insert_one(document=data)
-    #             logging.info(result)
-    #     else:
-    #         for data in datas:
-    #             date_of_birth = data["Date of birth/Age"][0:-5]
-    #             reg_birth = re.compile(f"^{date_of_birth}")
-
-    #             if colc.find_one({
-    #                 'Date of birth/Age' : {"$regex" : reg_birth},
-    #                 'shirt_name' : data["shirt_name"]}):
-    #                 result = colc.find_one_and_update(
-    #                     {'Date of birth/Age' : {"$regex" : reg_birth},
-    #                     'shirt_name' : data["shirt_name"]}, 
-    #                     update={"$set" : data},
-    #                     return_document=ReturnDocument.AFTER)
-    #             else:
-    #                 result = colc.insert_one(document=data)
-    #             logging.info(result)
-        
-    #     myclient.close()
-
-    #     return datas
-    
     @task
     def extract_club_url(url_list):
         urls = combine_url_list(url_list)
@@ -121,13 +50,6 @@ with DAG(
         url=config.KLEAGUE_URLS,
     )
     
-
-    # verify_club_mongo_task = verify_data_by_mongo(mongo_host=config.MONGO_HOST,
-    #                                               mongo_db=config.MONGO_DB,
-    #                                               mongo_collection=config.MONGO_COLLECTION_CLUBS,
-    #                                               data_list=scrap_club_profile_task.output)
-    
-    # extract_club_url = extract_club_url(url_list=verify_club_mongo_task)
     extract_club_url = extract_club_url(url_list=scrap_club_profile_task.output)
 
     scrap_player_profile_task = ScrapPlayerProfileOperator.partial(
@@ -139,11 +61,6 @@ with DAG(
         url=extract_club_url
     )
 
-    # verify_player_mongo_task = verify_data_by_mongo(mongo_host=config.MONGO_HOST,
-    #                                               mongo_db=config.MONGO_DB,
-    #                                               mongo_collection=config.MONGO_COLLECTION_PLAYERS,
-    #                                               data_list=scrap_player_profile_task.output)
-
     finish = PythonOperator(
         task_id="finishing_pipeline",
         python_callable=dummy_callable,
@@ -151,6 +68,4 @@ with DAG(
         dag=dag
     )
 
-    # start >> scrap_club_profile_task >> verify_club_mongo_task >> extract_club_url >> scrap_player_profile_task
-    # scrap_player_profile_task >> verify_player_mongo_task >> finish
     start >> scrap_club_profile_task >> extract_club_url >> scrap_player_profile_task >> finish
