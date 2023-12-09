@@ -1,1 +1,0 @@
-from k_moneyball.modules.util.configs import TRANSFER_MARKT_ROOT_URL, REQUEST_HEADERS, CLUBS_INFO_JSON_PATH, PLAYERS_INFO_JSON_PATH
