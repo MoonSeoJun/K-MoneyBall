@@ -5,6 +5,6 @@
         "errors.tolerance" : "all",
         "connection.uri":"mongodb://admin:admin@mongo:27017",
         "database": "k_moneyball",
-        "collection" : "stats"
+        "collection" : "game_stats"
     }
 }

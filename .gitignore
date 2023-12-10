@@ -3,6 +3,10 @@ k_moneyball/__pycache__
 k_moneyball/*/__pycache__
 k_moneyball/*/*/__pycache__
 
+kafka_listener/__pycache__
+kafka_listener/*/__pycache__
+kafka_listener/*/*/__pycache__
+
 airflow/*/__pycache__
 airflow/logs
 airflow/*/*/__pycache__

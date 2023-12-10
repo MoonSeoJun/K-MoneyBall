@@ -4,7 +4,7 @@ from kafka.errors import NoBrokersAvailable
 import time
 import logging
 import json
-import datetime
+
 
 def create_producer():
     bootstrap_servers = ['broker:29092']
@@ -26,7 +26,7 @@ def create_producer():
 def create_consumer():
     bootstrap_servers = ['broker:29092']
     group_id = 'k_moneyball'
-    topic = ['k_moneyball.clubs', 'k_moneyball.players', 'k_moneyball.stats']
+    topic = ['k_moneyball.clubs', 'k_moneyball.players', 'k_moneyball.game_stats']
 
     while True:
         try:

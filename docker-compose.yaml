@@ -114,16 +114,6 @@ services:
     ports:
       - "5432:5432"
 
-  spark:
-    image: bitnami/spark:latest
-    environment:
-      - POSTGRESQL_JDBC_URL=jdbc:postgresql://postgres_kmoneyball:5432/k_moneyball
-      - POSTGRESQL_JDBC_USER=k_moneyball
-      - POSTGRESQL_JDBC_PASSWORD=k_moneyball
-    ports:
-      - "4040:4040"
-
-
   redis:
     image: redis:latest
     expose:
@@ -426,6 +416,15 @@ services:
       - ./k_moneyball:/k_moneyball
     ports:
       - 80:80
+    depends_on:
+      - broker
+      - connect
+
+  kafka_listener:
+    container_name: kafka_listener
+    build: ./kafka_listener
+    volumes:
+      - ./kafka_listener:/kafka_listener
     depends_on:
       - broker
       - connect
