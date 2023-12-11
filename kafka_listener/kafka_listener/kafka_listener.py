@@ -5,6 +5,8 @@ import time
 import logging
 import json
 
+from postgresql_connector import PostgresqlConnector
+
 class KafkaListener:
     def __init__(self) -> None:
         bootstrap_servers = ['broker:29092']
@@ -92,6 +94,8 @@ class KafkaListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+
+    postgresql_connector = PostgresqlConnector()
 
     print("Start Kafka connection")
 
