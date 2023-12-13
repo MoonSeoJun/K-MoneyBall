@@ -1,22 +1,22 @@
 CREATE TABLE players (
     player_id SERIAL PRIMARY KEY,
-    citizenship VARCHAR(20) DEFAULT NULL,
+    citizenship VARCHAR(50) DEFAULT NULL,
     contract_expires DATE DEFAULT NULL,
-    current_club VARCHAR(30) DEFAULT NULL,
+    current_club VARCHAR(50) DEFAULT NULL,
     date_of_birth DATE DEFAULT NULL,
     age INT DEFAULT 0,
+    foot VARCHAR(10) DEFAULT NULL,
     height INT DEFAULT 0,
     joined DATE DEFAULT NULL,
-    name_in_home_country VARCHAR(20) DEFAULT NULL,
-    place_of_birth VARCHAR(20) DEFAULT NULL,
-    player_agent VARCHAR(20) DEFAULT NULL,
-    position VARCHAR(30) DEFAULT NULL,
-    social_media VARCHAR(10) DEFAULT NULL,
+    name_in_home_country VARCHAR(50) DEFAULT NULL,
+    place_of_birth VARCHAR(50) DEFAULT NULL,
+    player_agent VARCHAR(30) DEFAULT NULL,
+    position VARCHAR(50) DEFAULT NULL,
     market_value VARCHAR(10) DEFAULT NULL,
-    national VARCHAR(20) DEFAULT NULL,
-    player_name VARCHAR(20) DEFAULT NULL,
+    national VARCHAR(30) DEFAULT NULL,
+    shirt_name VARCHAR(30) DEFAULT NULL,
     shirt_num INT DEFAULT 0,
-    player_url VARCHAR(100) DEFAULT NULL
+    url VARCHAR(100) DEFAULT NULL
     -- Other player-related columns
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE clubs (
     club_id SERIAL PRIMARY KEY,
     club_name VARCHAR(100),
     league VARCHAR(100),
-    club_url VARCHAR(100)
+    url VARCHAR(100)
     -- Other club-related columns
 );
 

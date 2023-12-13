@@ -14,6 +14,7 @@ class KafkaListener:
 
         self.producer = self.__create_producer(bootstrap_servers)
         self.consumer = self.__create_consumer(bootstrap_servers, topic)
+        self.postgresql_connector = PostgresqlConnector()
 
     def consume_messages(self):
         try:
@@ -42,8 +43,9 @@ class KafkaListener:
                     updated_field = event_description['updatedFields']
                     if len(updated_field) == 1: continue
                     else: event_sink['updateDescription'] = event_description
-                else:
+                elif event_operation_type == "insert":
                     event_sink['fullDocument'] = msg_payload['fullDocument']
+                    self.postgresql_connector.insert_player_info(msg_payload['fullDocument'])
 
                 self.producer.send(
                     topic='k_moneyball.sink.event',
@@ -94,8 +96,6 @@ class KafkaListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
-    postgresql_connector = PostgresqlConnector()
 
     print("Start Kafka connection")
 
