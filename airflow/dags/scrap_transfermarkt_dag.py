@@ -30,7 +30,7 @@ with DAG(
     @task
     def extract_club_url(url_list):
         urls = combine_url_list(url_list)
-        club_urls = [club['club_url'] for club in urls]
+        club_urls = [club['url'] for club in urls]
         return club_urls
 
     start = PythonOperator(
