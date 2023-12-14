@@ -10,8 +10,14 @@ PLAYER_BLOCK_KEYS = ["on_loan_from",
                     "contract_there_expires",
                     "date_of_last_contract_extension",
                     "social-media",
+                    "outfitter",
+                    "full_name",
+                    "2nd_club",
                     "_insertedts",
                     "_modifiedts"]
+
+CLUB_BLOCK_KEYS = ["_insertedTS",
+                   "_modifiedTS"]
 
 class PostgresqlConnector:
     def __init__(self) -> None:
@@ -36,6 +42,25 @@ class PostgresqlConnector:
                 cur.execute("INSERT INTO players ({0}) VALUES ({1})".format(columns, values_len), values)
                 conn.commit()
 
+    def insert_club_info(self, club_info):
+        logging.info(club_info)
+
+        json_query_column = self.__rewrite_json_club_query(club_info)
+
+        logging.info(json_query_column)
+
+        with psycopg.connect("""dbname=k_moneyball
+                                     user=k_moneyball
+                                     password=k_moneyball
+                                     host=postgres_kmoneyball
+                                     port=5432""") as conn:
+            with conn.cursor() as cur:
+                columns = ','.join(json_query_column.keys())
+                values = [v for _, v in json_query_column.items()]
+                values_len = ','.join('%s' for _ in range(len(values)))
+                cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
+                conn.commit()
+
     def __rewrite_json_player_query(self, json_data) -> dict:
         json_query_column = {}
 
@@ -43,6 +68,8 @@ class PostgresqlConnector:
             renamed_key = k.lower().replace(' ', '_')
             if renamed_key in PLAYER_BLOCK_KEYS:
                 continue
+            if v == "":
+                json_query_column[renamed_key] = None
             elif len(renamed_key.split('/')) > 1:
                 k_date_of_birth = renamed_key.split('/')[0]
                 k_age = renamed_key.split('/')[1]
@@ -51,7 +78,7 @@ class PostgresqlConnector:
                 v_day = v.split(' ')[1][0:-1]
                 v_date_of_birth = datetime.datetime.strptime(f"{v_year}-{v_month}-{v_day}", 
                                                             "%Y-%m-%d").date()
-                v_age = v.split(' ')[-1][1:3]
+                v_age = v.split(' ')[3][1:3]
 
                 json_query_column[k_date_of_birth] = v_date_of_birth
                 json_query_column[k_age] = v_age
@@ -72,5 +99,18 @@ class PostgresqlConnector:
                 json_query_column["player_id"] = v
             else:
                 json_query_column[renamed_key] = v
+
+        return json_query_column
+    
+    def __rewrite_json_club_query(self, json_data:dict) -> dict:
+        json_query_column = {}
+
+        for k, v in json_data.items():
+            if k in CLUB_BLOCK_KEYS:
+                continue
+            elif k == "_id":
+                json_query_column["club_id"] = v
+            else:
+                json_query_column[k] = v
 
         return json_query_column
