@@ -19,6 +19,8 @@ PLAYER_BLOCK_KEYS = ["on_loan_from",
 CLUB_BLOCK_KEYS = ["_insertedTS",
                    "_modifiedTS"]
 
+GAME_STAT_BLOCK_KEYS = ["ID"]
+
 class PostgresqlConnector:
     def __init__(self) -> None:
         pass
@@ -60,6 +62,46 @@ class PostgresqlConnector:
                 values_len = ','.join('%s' for _ in range(len(values)))
                 cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
                 conn.commit()
+
+    def insert_game_stat_info(self, game_stat):
+        logging.info(game_stat)
+
+        json_query_column = self.__rewrite_json_game_stat_query(game_stat)
+
+        logging.info(json_query_column)
+
+        with psycopg.connect("""dbname=k_moneyball
+                                     user=k_moneyball
+                                     password=k_moneyball
+                                     host=postgres_kmoneyball
+                                     port=5432""") as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
+                                .format(json_query_column['club'], json_query_column['shirt_number']))
+                    player_id = cur.fetchone()[0]
+                    logging.info(f"player_id : {player_id}")
+                    json_query_column['player_id'] = player_id
+
+                    cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
+                                .format(json_query_column['club']))
+                    club_id = cur.fetchone()[0]
+                    logging.info(f"club_id : {club_id}")
+                    json_query_column['club_id'] = club_id
+
+                    cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
+                                .format(json_query_column['match']))
+                    match_club_id = cur.fetchone()[0]
+                    logging.info(f"match_club_id : {match_club_id}")
+                    json_query_column['match_club_id'] = match_club_id
+
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO game_stats ({0}) VALUES ({1})".format(columns, values_len), values)
+                    conn.commit()
+                except:
+                    logging.info("Can not find player")
 
     def __rewrite_json_player_query(self, json_data) -> dict:
         json_query_column = {}
@@ -112,5 +154,20 @@ class PostgresqlConnector:
                 json_query_column["club_id"] = v
             else:
                 json_query_column[k] = v
+
+        return json_query_column
+    
+    def __rewrite_json_game_stat_query(self, game_stat:dict) -> dict:
+        json_query_column = {}
+
+        for k, v in game_stat.items():
+            if k in GAME_STAT_BLOCK_KEYS:
+                continue
+            if type(v) is dict:
+                if '$numberLong' in v.keys():
+                    v = int(v.get('$numberLong'))
+                elif '$oid':
+                    v = v.get('$oid')
+            json_query_column[k] = v
 
         return json_query_column

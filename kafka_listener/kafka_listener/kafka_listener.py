@@ -50,6 +50,9 @@ class KafkaListener:
                         self.postgresql_connector.insert_player_info(insert_data)
                     elif msg_topic == "k_moneyball.clubs":
                         self.postgresql_connector.insert_club_info(insert_data)
+                    elif msg_topic == "k_moneyball.game_stats":
+                        self.postgresql_connector.insert_game_stat_info(insert_data)
+
 
                 self.producer.send(
                     topic='k_moneyball.sink.event',
