@@ -17,7 +17,6 @@ CREATE TABLE players (
     market_value VARCHAR(10) DEFAULT NULL,
     player_agent VARCHAR(50) DEFAULT NULL,
     url VARCHAR(100) DEFAULT NULL
-    -- Other player-related columns
 );
 
 CREATE TABLE clubs (
@@ -25,7 +24,6 @@ CREATE TABLE clubs (
     club_name VARCHAR(100),
     league VARCHAR(100),
     url VARCHAR(100)
-    -- Other club-related columns
 );
 
 
@@ -61,7 +59,7 @@ CREATE TABLE game_stats (
     forward_passes INTEGER,
     successful_forward_passes INTEGER,
     successful_forward_passes_percent DECIMAL(5, 2),
-    backward_passes INTEGER
+    backward_passes INTEGER,
     successful_backward_passes INTEGER,
     successful_backward_passes_percent DECIMAL(5, 2),
     lateral_passes INTEGER,
@@ -112,5 +110,5 @@ CREATE TABLE game_stats (
     round INTEGER,
     match VARCHAR(100),
     home_away VARCHAR(10),
-    competition VARCHAR(100),
+    competition VARCHAR(100)
 );
