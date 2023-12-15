@@ -110,5 +110,6 @@ CREATE TABLE game_stats (
     round INTEGER,
     match VARCHAR(100),
     home_away VARCHAR(10),
-    competition VARCHAR(100)
+    competition VARCHAR(100),
+    result VARCHAR(5)
 );
