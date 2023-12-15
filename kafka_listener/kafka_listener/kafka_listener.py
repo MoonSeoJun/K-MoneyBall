@@ -51,13 +51,8 @@ class KafkaListener:
                 elif event_operation_type == "insert":
                     insert_data = msg_payload['fullDocument']
                     event_sink['fullDocument'] = insert_data
-                    if msg_topic == "k_moneyball.players":
-                        self.postgresql_connector.insert_player_info(insert_data)
-                    elif msg_topic == "k_moneyball.clubs":
-                        self.postgresql_connector.insert_club_info(insert_data)
-                    elif msg_topic == "k_moneyball.game_stats":
-                        self.postgresql_connector.insert_game_stat_info(insert_data)
-
+                    self.postgresql_connector.insert_mongo_source(target_table=event_document,
+                                                                  data=insert_data)
 
                 self.producer.send(
                     topic='k_moneyball.sink.event',
