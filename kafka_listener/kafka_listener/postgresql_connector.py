@@ -60,8 +60,11 @@ class PostgresqlConnector:
                 except TypeError:
                     logging.info('Can not find player or club')
 
-    def update_player_info(self, player_id, player_info):
-        json_query_column = self.__rewrite_json_player_query(player_info)
+    def update_postgresql(self, target_table, target_id, data):
+        json_query_column = self.__rewrite_json_query(target_table=target_table,
+                                                      json_data=data)
+        
+        target_id_column = target_table[0:-1] + "_id"
 
         with psycopg.connect("""dbname=k_moneyball
                                      user=k_moneyball
@@ -69,23 +72,9 @@ class PostgresqlConnector:
                                      host=postgres_kmoneyball
                                      port=5432""") as conn:
             with conn.cursor() as cur:
-                columns = ','.join(f"{k}=%s" for k, _ in json_query_column.items())
+                columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items())
                 values = [v for _, v in json_query_column.items()]
-                cur.execute("UPDATE players SET {0} WHERE player_id={1}".format(columns,player_id), values)
-                conn.commit()
-
-    def update_club_info(self, club_id, club_info):
-        json_query_column = self.__rewrite_json_club_query(club_info)
-
-        with psycopg.connect("""dbname=k_moneyball
-                                     user=k_moneyball
-                                     password=k_moneyball
-                                     host=postgres_kmoneyball
-                                     port=5432""") as conn:
-            with conn.cursor() as cur:
-                columns = ','.join(f"{k}=%s" for k, _ in json_query_column.items())
-                values = [v for _, v in json_query_column.items()]
-                cur.execute("UPDATE clubs SET {0} WHERE club_id={1}".format(columns, club_id), values)
+                cur.execute("UPDATE {0} SET {1} WHERE {2}={3}".format(target_table, columns, target_id_column, target_id), values)
                 conn.commit()
 
     def __rewrite_json_query(self, target_table, json_data):
