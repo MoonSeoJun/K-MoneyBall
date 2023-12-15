@@ -26,11 +26,7 @@ class PostgresqlConnector:
         pass
 
     def insert_player_info(self, player_info):
-        logging.info(player_info)
-
         json_query_column = self.__rewrite_json_player_query(player_info)
-
-        logging.info(json_query_column)
 
         with psycopg.connect("""dbname=k_moneyball
                                      user=k_moneyball
@@ -45,11 +41,7 @@ class PostgresqlConnector:
                 conn.commit()
 
     def insert_club_info(self, club_info):
-        logging.info(club_info)
-
         json_query_column = self.__rewrite_json_club_query(club_info)
-
-        logging.info(json_query_column)
 
         with psycopg.connect("""dbname=k_moneyball
                                      user=k_moneyball
@@ -64,11 +56,7 @@ class PostgresqlConnector:
                 conn.commit()
 
     def insert_game_stat_info(self, game_stat):
-        logging.info(game_stat)
-
         json_query_column = self.__rewrite_json_game_stat_query(game_stat)
-
-        logging.info(json_query_column)
 
         with psycopg.connect("""dbname=k_moneyball
                                      user=k_moneyball
@@ -80,19 +68,16 @@ class PostgresqlConnector:
                     cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
                                 .format(json_query_column['club'], json_query_column['shirt_number']))
                     player_id = cur.fetchone()[0]
-                    logging.info(f"player_id : {player_id}")
                     json_query_column['player_id'] = player_id
 
                     cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
                                 .format(json_query_column['club']))
                     club_id = cur.fetchone()[0]
-                    logging.info(f"club_id : {club_id}")
                     json_query_column['club_id'] = club_id
 
                     cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
                                 .format(json_query_column['match']))
                     match_club_id = cur.fetchone()[0]
-                    logging.info(f"match_club_id : {match_club_id}")
                     json_query_column['match_club_id'] = match_club_id
 
                     columns = ','.join(json_query_column.keys())
