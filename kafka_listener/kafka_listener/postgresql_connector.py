@@ -40,6 +40,20 @@ class PostgresqlConnector:
                 cur.execute("INSERT INTO players ({0}) VALUES ({1})".format(columns, values_len), values)
                 conn.commit()
 
+    def update_player_info(self, player_id, player_info):
+        json_query_column = self.__rewrite_json_player_query(player_info)
+
+        with psycopg.connect("""dbname=k_moneyball
+                                     user=k_moneyball
+                                     password=k_moneyball
+                                     host=postgres_kmoneyball
+                                     port=5432""") as conn:
+            with conn.cursor() as cur:
+                columns = ','.join(f"{k}=%s" for k, _ in json_query_column.items())
+                values = [v for _, v in json_query_column.items()]
+                cur.execute("UPDATE players SET {0} WHERE player_id={1}".format(columns,player_id), values)
+                conn.commit()
+
     def insert_club_info(self, club_info):
         json_query_column = self.__rewrite_json_club_query(club_info)
 
@@ -53,6 +67,20 @@ class PostgresqlConnector:
                 values = [v for _, v in json_query_column.items()]
                 values_len = ','.join('%s' for _ in range(len(values)))
                 cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
+                conn.commit()
+
+    def update_club_info(self, club_id, club_info):
+        json_query_column = self.__rewrite_json_club_query(club_info)
+
+        with psycopg.connect("""dbname=k_moneyball
+                                     user=k_moneyball
+                                     password=k_moneyball
+                                     host=postgres_kmoneyball
+                                     port=5432""") as conn:
+            with conn.cursor() as cur:
+                columns = ','.join(f"{k}=%s" for k, _ in json_query_column.items())
+                values = [v for _, v in json_query_column.items()]
+                cur.execute("UPDATE clubs SET {0} WHERE club_id={1}".format(columns, club_id), values)
                 conn.commit()
 
     def insert_game_stat_info(self, game_stat):

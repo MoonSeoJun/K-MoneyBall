@@ -42,7 +42,12 @@ class KafkaListener:
                     event_description = msg_payload["updateDescription"]
                     updated_field = event_description['updatedFields']
                     if len(updated_field) == 1: continue
-                    else: event_sink['updateDescription'] = event_description
+                    else: 
+                        event_sink['updateDescription'] = event_description
+                        if msg_topic == "k_moneyball.players":
+                            self.postgresql_connector.update_player_info(event_document_id, updated_field)
+                        elif msg_topic == "k_moneyball.clubs":
+                            self.postgresql_connector.update_club_info(event_document_id, updated_field)
                 elif event_operation_type == "insert":
                     insert_data = msg_payload['fullDocument']
                     event_sink['fullDocument'] = insert_data
