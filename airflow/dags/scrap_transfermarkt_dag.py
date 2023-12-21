@@ -1,5 +1,3 @@
-import pymongo
-from pymongo import ReturnDocument
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
