@@ -38,16 +38,7 @@ class KafkaListener:
                     'eventTarget' : event_document_id
                 }
 
-                if event_operation_type == "update":
-                    event_description = msg_payload["updateDescription"]
-                    updated_field = event_description['updatedFields']
-                    if len(updated_field) == 1: continue
-                    else: 
-                        event_sink['updateDescription'] = event_description
-                        self.postgresql_connector.update_postgresql(target_table=event_document,
-                                                                    target_id=event_document_id,
-                                                                    data=updated_field)
-                elif event_operation_type == "insert":
+                if event_operation_type == "insert":
                     insert_data = msg_payload['fullDocument']
                     event_sink['fullDocument'] = insert_data
                     self.postgresql_connector.insert_mongo_source(target_table=event_document,
