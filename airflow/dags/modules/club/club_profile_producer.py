@@ -24,7 +24,7 @@ class ClubProfileProducer:
 
             club_info.append(
             {
-                "_id" : club.split('/')[-3],
+                "club_id" : club.split('/')[-3],
                 "league" : league_title.string.strip(),
                 "club_name" : tag.a['title'],
                 "url" : club_url
