@@ -55,9 +55,6 @@ class PostgresqlConnector:
                         values = [v for _, v in json_query_column.items()]
                         values_len = ','.join('%s' for _ in range(len(values)))
                         cur.execute("INSERT INTO players_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                        conn.commit()
-
-                        cur.execute("BEGIN;")
                         cur.execute("SELECT player_id FROM players WHERE player_id={0} FOR UPDATE".format(json_query_column['player_id']))
                         cur.execute("DELETE FROM players WHERE player_id={0}".format(json_query_column['player_id']))
 
@@ -71,9 +68,6 @@ class PostgresqlConnector:
                         values = [v for _, v in json_query_column.items()]
                         values_len = ','.join('%s' for _ in range(len(values)))
                         cur.execute("INSERT INTO clubs_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                        conn.commit()
-
-                        cur.execute("BEGIN;")
                         cur.execute("SELECT club_id FROM clubs WHERE club_id={0} FOR UPDATE".format(json_query_column['club_id']))
                         cur.execute("DELETE FROM clubs WHERE club_id={0}".format(json_query_column['club_id']))
 
