@@ -32,6 +32,11 @@ class ScrapClubProfileOperator(BaseOperator):
         club_profile_producer = ClubProfileProducer()
         club_profiles = club_profile_producer.produce_club_info(url_content)
 
+        for club_profile in club_profiles:
+            url_content = url_vaildator.verify_url(club_profile['url'])
+            current_club_title = club_profile_producer.produce_current_club_title(url_content)
+            club_profiles[club_profiles.index(club_profile)]['club_name'] = current_club_title
+
         with ClubProfileExporter(self.bootstrap_servers) as exporter:
             try:
                 exporter.export_club_profile(
