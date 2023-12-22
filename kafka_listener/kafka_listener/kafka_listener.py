@@ -1,4 +1,4 @@
-from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaConsumer
 from kafka.errors import NoBrokersAvailable
 
 import time
@@ -12,7 +12,6 @@ class KafkaListener:
         bootstrap_servers = ['broker:29092']
         topic = ['k_moneyball.clubs', 'k_moneyball.players', 'k_moneyball.game_stats']
 
-        self.producer = self.__create_producer(bootstrap_servers)
         self.consumer = self.__create_consumer(bootstrap_servers, topic)
         self.postgresql_connector = PostgresqlConnector()
 
@@ -32,44 +31,16 @@ class KafkaListener:
                 event_document_id = msg_payload["documentKey"]["_id"]
                 print("============================================")
 
-                event_sink = {
-                    'event_operation_type' : event_operation_type,
-                    'targetDocument' : event_document,
-                    'eventTarget' : event_document_id
-                }
-
                 if event_operation_type == "insert":
                     insert_data = msg_payload['fullDocument']
-                    event_sink['fullDocument'] = insert_data
                     self.postgresql_connector.insert_mongo_source(target_table=event_document,
                                                                   data=insert_data)
-
-                self.producer.send(
-                    topic='k_moneyball.sink.event',
-                    value=event_sink
-                )
-                self.producer.flush()
 
         except KeyboardInterrupt:
             pass
 
         finally:
             self.consumer.close()
-
-    def __create_producer(self, bootstrap_servers):
-        while True:
-            try:
-                producer = KafkaProducer(
-                    bootstrap_servers=bootstrap_servers,
-                    value_serializer=lambda x: json.dumps(x).encode("utf-8")
-                )
-
-                print("Kafka producer connection Complete!!")
-
-                return producer
-            except NoBrokersAvailable:
-                print(f"connect kafka error by NoBrokersAvailable")
-                time.sleep(5)
 
     def __create_consumer(self, bootstrap_servers, topic):
         group_id = 'k_moneyball'
