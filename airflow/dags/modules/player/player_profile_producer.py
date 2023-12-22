@@ -50,7 +50,7 @@ class PlayerProfileProducer:
         try:
             player_info['market_value'] = player_value.text.split(' ')[0][1:]
         except:
-            player_info['market_value'] = 0
+            player_info['market_value'] = '0'
 
         player_shirt_info = soup.find("h1", {"class" : "data-header__headline-wrapper"})
         player_shirt_info_cleared = player_shirt_info.get_text().replace(" ", "").split("\n")
