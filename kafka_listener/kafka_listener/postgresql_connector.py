@@ -28,12 +28,20 @@ class PostgresqlConnector:
                                      host=postgres_kmoneyball
                                      port=5432""") as conn:
             with conn.cursor() as cur:
-                try:
-                    if target_table == 'game_stats':
-                        cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
+                if target_table == 'game_stats':
+                    try:
+                        cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_name = '{1}')"
+                                        .format(json_query_column['club'], json_query_column['name']))
+                        plyaer_info = cur.fetchone()
+                        if plyaer_info is None:
+                            cur.execute("SELECT player_id, shirt_name FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
                                         .format(json_query_column['club'], json_query_column['shirt_number']))
-                        player_id = cur.fetchone()[0]
+                            plyaer_info = cur.fetchone()
+                            json_query_column['name'] = plyaer_info[1]
+
+                        player_id = plyaer_info[0]
                         json_query_column['player_id'] = player_id
+                        
 
                         cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
                                         .format(json_query_column['club']))
@@ -41,43 +49,44 @@ class PostgresqlConnector:
                         json_query_column['club_id'] = club_id
 
                         cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
-                                        .format(json_query_column['match']))
+                                            .format(json_query_column['match']))
                         match_club_id = cur.fetchone()[0]
                         json_query_column['match_club_id'] = match_club_id
+                    except TypeError:
+                        print("Can not find player or club")
+                        return
 
-                        columns = ','.join(json_query_column.keys())
-                        values = [v for _, v in json_query_column.items()]
-                        values_len = ','.join('%s' for _ in range(len(values)))
-                        cur.execute("INSERT INTO {0} ({1}) VALUES ({2})".format(target_table, columns, values_len), values)
-                        conn.commit()
-                    elif target_table == "players":
-                        columns = ','.join(json_query_column.keys())
-                        values = [v for _, v in json_query_column.items()]
-                        values_len = ','.join('%s' for _ in range(len(values)))
-                        cur.execute("INSERT INTO players_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                        cur.execute("SELECT player_id FROM players WHERE player_id={0} FOR UPDATE".format(json_query_column['player_id']))
-                        cur.execute("DELETE FROM players WHERE player_id={0}".format(json_query_column['player_id']))
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO {0} ({1}) VALUES ({2})".format(target_table, columns, values_len), values)
+                    conn.commit()
+                elif target_table == "players":
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO players_history ({0}) VALUES ({1})".format(columns, values_len), values)
+                    cur.execute("SELECT player_id FROM players WHERE player_id={0} FOR UPDATE".format(json_query_column['player_id']))
+                    cur.execute("DELETE FROM players WHERE player_id={0}".format(json_query_column['player_id']))
 
-                        columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
-                        values = [v for k, v in json_query_column.items() if k != "_id"]
-                        values_len = ','.join('%s' for _ in range(len(values)))
-                        cur.execute("INSERT INTO players ({0}) VALUES ({1})".format(columns, values_len), values)
-                        conn.commit()
-                    elif target_table == "clubs":
-                        columns = ','.join(json_query_column.keys())
-                        values = [v for _, v in json_query_column.items()]
-                        values_len = ','.join('%s' for _ in range(len(values)))
-                        cur.execute("INSERT INTO clubs_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                        cur.execute("SELECT club_id FROM clubs WHERE club_id={0} FOR UPDATE".format(json_query_column['club_id']))
-                        cur.execute("DELETE FROM clubs WHERE club_id={0}".format(json_query_column['club_id']))
+                    columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    values = [v for k, v in json_query_column.items() if k != "_id"]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO players ({0}) VALUES ({1})".format(columns, values_len), values)
+                    conn.commit()
+                elif target_table == "clubs":
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO clubs_history ({0}) VALUES ({1})".format(columns, values_len), values)
+                    cur.execute("SELECT club_id FROM clubs WHERE club_id={0} FOR UPDATE".format(json_query_column['club_id']))
+                    cur.execute("DELETE FROM clubs WHERE club_id={0}".format(json_query_column['club_id']))
 
-                        columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
-                        values = [v for k, v in json_query_column.items() if k != "_id"]
-                        values_len = ','.join('%s' for _ in range(len(values)))
-                        cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
-                        conn.commit()
-                except TypeError:
-                    logging.info('Can not find player or club')
+                    columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    values = [v for k, v in json_query_column.items() if k != "_id"]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
+                    conn.commit()
 
     def __rewrite_json_query(self, target_table, json_data):
         if target_table == 'players':
