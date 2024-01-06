@@ -17,7 +17,7 @@ CREATE TABLE players (
     height INT DEFAULT 0,
     foot VARCHAR(10) DEFAULT NULL,
     position VARCHAR(50) DEFAULT NULL,
-    market_value VARCHAR(10) DEFAULT NULL,
+    market_value DECIMAL(5, 2) DEFAULT NULL,
     player_agent VARCHAR(50) DEFAULT NULL,
     timestamp TIMESTAMP, 
     url VARCHAR(100) DEFAULT NULL
@@ -43,7 +43,7 @@ CREATE TABLE players_history (
     height INT DEFAULT 0,
     foot VARCHAR(10) DEFAULT NULL,
     position VARCHAR(50) DEFAULT NULL,
-    market_value VARCHAR(10) DEFAULT NULL,
+    market_value DECIMAL(5, 2) DEFAULT NULL,
     player_agent VARCHAR(50) DEFAULT NULL,
     timestamp TIMESTAMP, 
     url VARCHAR(100) DEFAULT NULL

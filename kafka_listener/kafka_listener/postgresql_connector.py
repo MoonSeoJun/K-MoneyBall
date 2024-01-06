@@ -111,7 +111,7 @@ class PostgresqlConnector:
                     v = datetime.datetime.fromtimestamp(date/1000)
                     k = "timestamp"
                 elif '$numberLong' in v.keys():
-                    v = int(v.get('$numberLong'))
+                    v = float(v.get('$numberLong'))
                 elif '$oid':
                     v = v.get('$oid')
                 json_query_column[k] = v
@@ -147,7 +147,7 @@ class PostgresqlConnector:
                 continue
             if type(v) is dict:
                 if '$numberLong' in v.keys():
-                    v = int(v.get('$numberLong'))
+                    v = float(v.get('$numberLong'))
                 elif '$oid':
                     v = v.get('$oid')
             json_query_column[k] = v
