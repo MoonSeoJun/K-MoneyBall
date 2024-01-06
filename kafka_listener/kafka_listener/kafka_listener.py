@@ -28,7 +28,6 @@ class KafkaListener:
                 msg_payload = json.loads(json_decoded_msg['payload'])
                 event_operation_type = msg_payload['operationType']
                 event_document = msg_payload["ns"]["coll"]
-                event_document_id = msg_payload["documentKey"]["_id"]
                 print("============================================")
 
                 if event_operation_type == "insert":
