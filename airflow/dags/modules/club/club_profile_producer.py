@@ -24,7 +24,7 @@ class ClubProfileProducer:
 
             club_info.append(
             {
-                "_id" : club.split('/')[-3],
+                "club_id" : club.split('/')[-3],
                 "league" : league_title.string.strip(),
                 "club_name" : tag.a['title'],
                 "url" : club_url
@@ -33,6 +33,20 @@ class ClubProfileProducer:
         time.sleep(1)
 
         return club_info
+    
+    def __parsing_current_club_title(self, url_content):
+        soup = BeautifulSoup(url_content, "lxml")
+
+        club_title = soup.find("h1", {"class" : "data-header__headline-wrapper data-header__headline-wrapper--oswald"}).string.strip()
+
+        time.sleep(1)
+
+        return club_title
+    
+    def produce_current_club_title(self, url_content):
+        club_title = self.__parsing_current_club_title(url_content)
+
+        return club_title
     
     def produce_club_info(self, url_content):
         club_info = self.__parsing_club_profile(url_content)

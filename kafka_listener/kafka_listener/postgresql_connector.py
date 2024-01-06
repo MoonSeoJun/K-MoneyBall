@@ -2,22 +2,15 @@ import psycopg
 
 import logging
 import datetime
-import time
-import re
 
-PLAYER_BLOCK_KEYS = ["on_loan_from", 
-                    "contract_option", 
-                    "contract_there_expires",
-                    "date_of_last_contract_extension",
+PLAYER_BLOCK_KEYS = ["contract_there_expires",
                     "social-media",
                     "outfitter",
                     "full_name",
                     "2nd_club",
-                    "_insertedts",
                     "_modifiedts"]
 
-CLUB_BLOCK_KEYS = ["_insertedTS",
-                   "_modifiedTS"]
+CLUB_BLOCK_KEYS = ["_modifiedTS"]
 
 GAME_STAT_BLOCK_KEYS = ["ID"]
 
@@ -35,12 +28,20 @@ class PostgresqlConnector:
                                      host=postgres_kmoneyball
                                      port=5432""") as conn:
             with conn.cursor() as cur:
-                try:
-                    if target_table == 'game_stats':
-                        cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
+                if target_table == 'game_stats':
+                    try:
+                        cur.execute("SELECT player_id FROM players WHERE (current_club = '{0}' and shirt_name = '{1}')"
+                                        .format(json_query_column['club'], json_query_column['name']))
+                        plyaer_info = cur.fetchone()
+                        if plyaer_info is None:
+                            cur.execute("SELECT player_id, shirt_name FROM players WHERE (current_club = '{0}' and shirt_num = {1})"
                                         .format(json_query_column['club'], json_query_column['shirt_number']))
-                        player_id = cur.fetchone()[0]
+                            plyaer_info = cur.fetchone()
+                            json_query_column['name'] = plyaer_info[1]
+
+                        player_id = plyaer_info[0]
                         json_query_column['player_id'] = player_id
+                        
 
                         cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
                                         .format(json_query_column['club']))
@@ -48,34 +49,46 @@ class PostgresqlConnector:
                         json_query_column['club_id'] = club_id
 
                         cur.execute("SELECT club_id FROM clubs WHERE club_name = '{0}'"
-                                        .format(json_query_column['match']))
+                                            .format(json_query_column['match']))
                         match_club_id = cur.fetchone()[0]
                         json_query_column['match_club_id'] = match_club_id
+                    except TypeError:
+                        print("Can not find player or club")
+                        return
 
                     columns = ','.join(json_query_column.keys())
                     values = [v for _, v in json_query_column.items()]
                     values_len = ','.join('%s' for _ in range(len(values)))
                     cur.execute("INSERT INTO {0} ({1}) VALUES ({2})".format(target_table, columns, values_len), values)
                     conn.commit()
-                except TypeError:
-                    logging.info('Can not find player or club')
+                elif target_table == "players":
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO players_history ({0}) VALUES ({1})".format(columns, values_len), values)
 
-    def update_postgresql(self, target_table, target_id, data):
-        json_query_column = self.__rewrite_json_query(target_table=target_table,
-                                                      json_data=data)
-        
-        target_id_column = target_table[0:-1] + "_id"
+                    update_columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    values = [v for k, v in json_query_column.items() if k != "_id"]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    values.extend(values)
+                    cur.execute("INSERT INTO players ({0}) VALUES ({1}) ON CONFLICT (player_id) DO UPDATE SET {2}"
+                                .format(columns, values_len, update_columns), values)
+                    conn.commit()
+                elif target_table == "clubs":
+                    columns = ','.join(json_query_column.keys())
+                    values = [v for _, v in json_query_column.items()]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    cur.execute("INSERT INTO clubs_history ({0}) VALUES ({1})".format(columns, values_len), values)
 
-        with psycopg.connect("""dbname=k_moneyball
-                                     user=k_moneyball
-                                     password=k_moneyball
-                                     host=postgres_kmoneyball
-                                     port=5432""") as conn:
-            with conn.cursor() as cur:
-                columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items())
-                values = [v for _, v in json_query_column.items()]
-                cur.execute("UPDATE {0} SET {1} WHERE {2}={3}".format(target_table, columns, target_id_column, target_id), values)
-                conn.commit()
+                    update_columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
+                    values = [v for k, v in json_query_column.items() if k != "_id"]
+                    values_len = ','.join('%s' for _ in range(len(values)))
+                    values.extend(values)
+                    cur.execute("INSERT INTO clubs ({0}) VALUES ({1}) ON CONFLICT (club_id) DO UPDATE SET {2}"
+                                .format(columns, values_len, update_columns), values)
+                    conn.commit()
 
     def __rewrite_json_query(self, target_table, json_data):
         if target_table == 'players':
@@ -92,35 +105,16 @@ class PostgresqlConnector:
             renamed_key = k.lower().replace(' ', '_')
             if renamed_key in PLAYER_BLOCK_KEYS:
                 continue
-            if v == "":
-                json_query_column[renamed_key] = None
-            elif len(renamed_key.split('/')) > 1:
-                k_date_of_birth = renamed_key.split('/')[0]
-                k_age = renamed_key.split('/')[1]
-                v_year = v.split(' ')[2]
-                v_month = time.strptime(v.split(' ')[0], '%b').tm_mon
-                v_day = v.split(' ')[1][0:-1]
-                v_date_of_birth = datetime.datetime.strptime(f"{v_year}-{v_month}-{v_day}", 
-                                                            "%Y-%m-%d").date()
-                v_age = v.split(' ')[3][1:3]
-
-                json_query_column[k_date_of_birth] = v_date_of_birth
-                json_query_column[k_age] = v_age
-            elif renamed_key == "joined" or renamed_key == "contract_expires":
-                if v == "-":
-                    json_query_column[renamed_key] = None
-                else:
-                    v_year = v.split(' ')[2]
-                    v_month = time.strptime(v.split(' ')[0], '%b').tm_mon
-                    v_day = v.split(' ')[1][0:-1]
-                    v_date_of_birth = datetime.datetime.strptime(f"{v_year}-{v_month}-{v_day}", 
-                                                                "%Y-%m-%d").date()
-                    json_query_column[renamed_key] = v_date_of_birth
-            elif renamed_key == "height" or renamed_key == "shirt_num":
-                only_num = re.sub(r"[^0-9]", "", v)
-                json_query_column[renamed_key] = only_num
-            elif k == "_id":
-                json_query_column["player_id"] = v
+            if type(v) is dict:
+                if '$date' in v.keys():
+                    date = int(v.get('$date'))
+                    v = datetime.datetime.fromtimestamp(date/1000)
+                    k = "timestamp"
+                elif '$numberLong' in v.keys():
+                    v = float(v.get('$numberLong'))
+                elif '$oid':
+                    v = v.get('$oid')
+                json_query_column[k] = v
             else:
                 json_query_column[renamed_key] = v
 
@@ -132,8 +126,14 @@ class PostgresqlConnector:
         for k, v in json_data.items():
             if k in CLUB_BLOCK_KEYS:
                 continue
-            elif k == "_id":
-                json_query_column["club_id"] = v
+            if type(v) is dict:
+                if '$date' in v.keys():
+                    date = int(v.get('$date'))
+                    v = datetime.datetime.fromtimestamp(date/1000)
+                    k = "timestamp"
+                elif '$oid':
+                    v = v.get('$oid')
+                json_query_column[k] = v
             else:
                 json_query_column[k] = v
 
@@ -147,7 +147,7 @@ class PostgresqlConnector:
                 continue
             if type(v) is dict:
                 if '$numberLong' in v.keys():
-                    v = int(v.get('$numberLong'))
+                    v = float(v.get('$numberLong'))
                 elif '$oid':
                     v = v.get('$oid')
             json_query_column[k] = v

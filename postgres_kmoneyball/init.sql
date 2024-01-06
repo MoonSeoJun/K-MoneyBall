@@ -11,11 +11,41 @@ CREATE TABLE players (
     shirt_num INT DEFAULT 0,
     joined DATE DEFAULT NULL,
     contract_expires DATE DEFAULT NULL,
+    date_of_last_contract_extension DATE DEFAULT NULL,
+    contract_option VARCHAR(50) DEFAULT NULL,
+    on_loan_from VARCHAR(50) DEFAULT NULL,
     height INT DEFAULT 0,
     foot VARCHAR(10) DEFAULT NULL,
     position VARCHAR(50) DEFAULT NULL,
-    market_value VARCHAR(10) DEFAULT NULL,
+    market_value DECIMAL(5, 2) DEFAULT NULL,
     player_agent VARCHAR(50) DEFAULT NULL,
+    timestamp TIMESTAMP, 
+    url VARCHAR(100) DEFAULT NULL
+);
+
+CREATE TABLE players_history (
+    _id VARCHAR(24) PRIMARY KEY,
+    player_id INT,
+    shirt_name VARCHAR(30) DEFAULT NULL,
+    national VARCHAR(30) DEFAULT NULL,
+    name_in_home_country VARCHAR(100) DEFAULT NULL,
+    place_of_birth VARCHAR(50) DEFAULT NULL,
+    citizenship VARCHAR(50) DEFAULT NULL,
+    date_of_birth DATE DEFAULT NULL,
+    age INT DEFAULT 0,
+    current_club VARCHAR(50) DEFAULT NULL,
+    shirt_num INT DEFAULT 0,
+    joined DATE DEFAULT NULL,
+    contract_expires DATE DEFAULT NULL,
+    date_of_last_contract_extension DATE DEFAULT NULL,
+    contract_option VARCHAR(50) DEFAULT NULL,
+    on_loan_from VARCHAR(50) DEFAULT NULL,
+    height INT DEFAULT 0,
+    foot VARCHAR(10) DEFAULT NULL,
+    position VARCHAR(50) DEFAULT NULL,
+    market_value DECIMAL(5, 2) DEFAULT NULL,
+    player_agent VARCHAR(50) DEFAULT NULL,
+    timestamp TIMESTAMP, 
     url VARCHAR(100) DEFAULT NULL
 );
 
@@ -23,6 +53,16 @@ CREATE TABLE clubs (
     club_id SERIAL PRIMARY KEY,
     club_name VARCHAR(100),
     league VARCHAR(100),
+    timestamp TIMESTAMP,
+    url VARCHAR(100)
+);
+
+CREATE TABLE clubs_history (
+    _id VARCHAR(24) PRIMARY KEY,
+    club_id SERIAL,
+    club_name VARCHAR(100),
+    league VARCHAR(100),
+    timestamp TIMESTAMP,
     url VARCHAR(100)
 );
 
