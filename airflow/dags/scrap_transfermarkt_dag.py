@@ -20,8 +20,8 @@ def combine_url_list(url_list):
 with DAG(
     dag_id="scrap_transfermarkt_dag",
     description=f"Scrape latest club and player profiles",
-    schedule_interval="@hourly",
-    start_date=datetime(2020, 1, 1),
+    schedule_interval="@daily",
+    start_date=datetime(2024, 1, 1),
     catchup=False,
     is_paused_upon_creation=False
 ) as dag:
