@@ -66,26 +66,28 @@ class PostgresqlConnector:
                     values = [v for _, v in json_query_column.items()]
                     values_len = ','.join('%s' for _ in range(len(values)))
                     cur.execute("INSERT INTO players_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                    cur.execute("SELECT player_id FROM players WHERE player_id={0} FOR UPDATE".format(json_query_column['player_id']))
-                    cur.execute("DELETE FROM players WHERE player_id={0}".format(json_query_column['player_id']))
 
+                    update_columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items() if k != "_id")
                     columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
                     values = [v for k, v in json_query_column.items() if k != "_id"]
                     values_len = ','.join('%s' for _ in range(len(values)))
-                    cur.execute("INSERT INTO players ({0}) VALUES ({1})".format(columns, values_len), values)
+                    values.extend(values)
+                    cur.execute("INSERT INTO players ({0}) VALUES ({1}) ON CONFLICT (player_id) DO UPDATE SET {2}"
+                                .format(columns, values_len, update_columns), values)
                     conn.commit()
                 elif target_table == "clubs":
                     columns = ','.join(json_query_column.keys())
                     values = [v for _, v in json_query_column.items()]
                     values_len = ','.join('%s' for _ in range(len(values)))
                     cur.execute("INSERT INTO clubs_history ({0}) VALUES ({1})".format(columns, values_len), values)
-                    cur.execute("SELECT club_id FROM clubs WHERE club_id={0} FOR UPDATE".format(json_query_column['club_id']))
-                    cur.execute("DELETE FROM clubs WHERE club_id={0}".format(json_query_column['club_id']))
 
+                    update_columns = ','.join("{0}=%s".format(k) for k, _ in json_query_column.items() if k != "_id")
                     columns = ','.join("{0}".format(k) for k, _ in json_query_column.items() if k != "_id")
                     values = [v for k, v in json_query_column.items() if k != "_id"]
                     values_len = ','.join('%s' for _ in range(len(values)))
-                    cur.execute("INSERT INTO clubs ({0}) VALUES ({1})".format(columns, values_len), values)
+                    values.extend(values)
+                    cur.execute("INSERT INTO clubs ({0}) VALUES ({1}) ON CONFLICT (club_id) DO UPDATE SET {2}"
+                                .format(columns, values_len, update_columns), values)
                     conn.commit()
 
     def __rewrite_json_query(self, target_table, json_data):
