@@ -437,6 +437,7 @@ services:
     volumes:
       - ./zeppelin/logs:/logs
       - ./zeppelin/notebook:/opt/zeppelin/notebook
+      - spark-binaries:/opt/bitnami/spark
     depends_on:
       - postgres_kmoneyball
 
@@ -452,6 +453,8 @@ services:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
       - SPARK_MASTER_WEBUI_PORT=18080
+    volumes:
+       - spark-binaries:/opt/bitnami/spark
   
   spark-worker-1:
     hostname: spark-worker-1
@@ -479,3 +482,4 @@ volumes:
   postgres_airflow-db-volume:
   postgres_kmoneyball-db-volume:
   mongo-db-volume:
+  spark-binaries:
