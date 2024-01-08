@@ -54,7 +54,8 @@ with DAG(
         task_id="scrap_player_profile_task",
         http_header=config.REQUEST_HEADERS,
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
-        topic=config.PLAYER_TOPIC
+        topic=config.PLAYER_TOPIC,
+        max_active_tis_per_dag=2
     ).expand(
         url=extract_club_url
     )
