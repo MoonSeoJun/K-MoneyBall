@@ -1,0 +1,1 @@
+export SPARK_SUBMIT_OPTIONS="--jars /opt/zeppelin/postgresql-42.7.1.jar"
